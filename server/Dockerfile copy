@@ -1,0 +1,28 @@
+# Use the Alpine variant of the Node.js 21.7.3 image
+FROM node:21.7.3-alpine
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies and node-pty
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+    && node --version \
+    && npm install \
+    && npm install node-pty ws \
+    && apk del .build-deps
+
+RUN apk add --no-cache bash
+# Copy the rest of the application code
+COPY . .
+
+# Create the user folder if it doesn't exist
+RUN mkdir -p /usr/src/app/user
+
+# Expose the port the app runs on
+EXPOSE 9000
+
+# Change working directory to user folder
+CMD ["npx","nodemon", "server.js"]
